@@ -61,5 +61,5 @@ class FenghuangSpider(scrapy.Spider):
                 url=f'https://shankapi.ifeng.com/autumn/getSoFengData/all/{inp}/{ym}/getSoFengDataCallback?callback=getSoFengDataCallback&_=15974592577480',
                 headers=headers,
                 callback=self.parse,
-                meta={'ym': ym}
+                meta={'ym': ym, 'inp': inp}
             )

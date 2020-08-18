@@ -17,7 +17,7 @@ class ToutiaoSpider(scrapy.Spider):
     def start_requests(self):
         inp = input('>>>')
         yield scrapy.Request(
-            url=f'https://www.toutiao.com/api/search/content/?aid=24&app_name=web_search&offset=0&format=json&keyword={inp}autoload=true&count=20&en_qc=1&cur_tab=1&from=search_tab&pd=synthesis&timestamp=1597458933140&_signature=cEJ-DAAgEBAjEcqaaDw.IHBDPxAAC942aHxRdoEZghPzjVmalIA-hVa3OebjezeM65X0xj759wDMWKeo1NmSWGNn2aYkz4bY8.42.2cnCkDVTLwejF5daJAUApc9.ktYIG.',
+            url=f'https://www.toutiao.com/api/search/content/?aid=24&app_name=web_search&offset=0&format=json&keyword={inp}&autoload=true&count=20&en_qc=1&cur_tab=1&from=search_tab&pd=synthesis&timestamp=1597732729923&_signature=8bCyUAAgEBCi4wbGgWG2OPGx80AAK6WCDVEgoxrWfT8UOk.foFSygFhig8d.Q6XiQb6scqZNK4iqpMxSaSMfUU7XY0S79xPeXKvjNzC1U8Q7IUwg0h38Nly3yz0Xb.QwG5U',
             headers=headers,
             callback=self.parse,
             meta={'inp': inp, 'offset': 0}
@@ -30,31 +30,27 @@ class ToutiaoSpider(scrapy.Spider):
 
         response = response.json()
         print(response)
-        if self.offset_sum == 0:
-            print(response['offset'], '条')
-            self.offset_sum = response['offset']
+        self.offset_sum = response['offset']
+        if response['data'] != '':
+            for i in response['data']:
+                item = NewplusItem()
+                item['title'] = i['title']
+                item['time'] = i['datetime']
+                item_id = i.get('item_id')
+                if item_id:
+                    item['title_url'] = "https://www.toutiao.com/group/" + item_id
+                else:
+                    item['title_url'] = ''
+                item['img'] = i['image_url']
+                if item['title'] and item['time'] and ['title_url']:
+                    self.rank += 1
+                    yield item
 
-        for i in response['data']:
-
-            item = NewplusItem()
-            item['title'] = i['title']
-            item['time'] = i['datetime']
-            item_id = i.get('item_id')
-            if item_id:
-                item['title_url'] = "https://www.toutiao.com/group/" + item_id
-            else:
-                item['title_url'] = ''
-            item['img'] = i['image_url']
-            if item['title'] and item['time'] and ['title_url']:
-                self.rank += 1
-                yield item
-
-        offset += 20
-        sleep(random.randint(1, 4))
-        if offset < self.offset_sum:
+            sleep(random.randint(1, 4))
+            offset += 20
             yield scrapy.Request(
-                url=f'https://www.toutiao.com/api/search/content/?aid=24&app_name=web_search&offset={offset}&format=json&keyword={inp}autoload=true&count=20&en_qc=1&cur_tab=1&from=search_tab&pd=synthesis&timestamp=1597458933140&_signature=cEJ-DAAgEBAjEcqaaDw.IHBDPxAAC942aHxRdoEZghPzjVmalIA-hVa3OebjezeM65X0xj759wDMWKeo1NmSWGNn2aYkz4bY8.42.2cnCkDVTLwejF5daJAUApc9.ktYIG.',
+                url=f'https://www.toutiao.com/api/search/content/?aid=24&app_name=web_search&offset={offset}&format=json&keyword={inp}&autoload=true&count=20&en_qc=1&cur_tab=1&from=search_tab&pd=synthesis&timestamp=1597732729923&_signature=8bCyUAAgEBCi4wbGgWG2OPGx80AAK6WCDVEgoxrWfT8UOk.foFSygFhig8d.Q6XiQb6scqZNK4iqpMxSaSMfUU7XY0S79xPeXKvjNzC1U8Q7IUwg0h38Nly3yz0Xb.QwG5U',
                 headers=headers,
                 callback=self.parse,
-                meta={'offset': offset}
+                meta={'offset': offset, 'inp': inp}
             )
