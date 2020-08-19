@@ -32,31 +32,29 @@ class FenghuangSpider(scrapy.Spider):
 
         response = json.loads(re.search(r'{.*}', response.text).group())
         print(response)
-        if self.ym_sum == 0:
-            self.ym_sum = response['data']['totalPage']
+        items = response['data']['items']
+        if items:
+            for i in items:
 
-        for i in response['data']['items']:
+                item = NewplusItem()
+                item['title'] = i['title'].replace('<em>', '').replace('</em>', '')
+                url = i.get('url')
+                if url:
+                    item["title_url"] = "https:" + url
+                else:
+                    item['title_url'] = ''
+                img = i.get('thumbnails')
+                if img != None:
+                    for ii in img['image']:
+                        item['img'] = ii['url']
+                else:
+                    item['img'] = ''
+                if item['title'] and item['title_url']:
+                    self.rank += 1
+                    yield item
 
-            item = NewplusItem()
-            item['title'] = i['title'].replace('<em>', '').replace('</em>', '')
-            url = i.get('url')
-            if url:
-                item["title_url"] = "https:" + url
-            else:
-                item['title_url'] = ''
-            img = i.get('thumbnails')
-            if img != None:
-                for ii in img['image']:
-                    item['img'] = ii['url']
-            else:
-                item['img'] = ''
-            if item['title'] and item['title_url']:
-                self.rank += 1
-                yield item
-
-        ym += 1
-        sleep(random.randint(1, 4))
-        if ym < self.ym_sum:
+            ym += 1
+            sleep(random.randint(1, 4))
             yield scrapy.Request(
                 url=f'https://shankapi.ifeng.com/autumn/getSoFengData/all/{inp}/{ym}/getSoFengDataCallback?callback=getSoFengDataCallback&_=15974592577480',
                 headers=headers,

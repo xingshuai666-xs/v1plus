@@ -29,8 +29,9 @@ class ToutiaoSpider(scrapy.Spider):
 
         response = response.json()
         print(response)
-        if response['content']['results'] != '':
-            for i in response['content']['results']:
+        results = response['content']['results']
+        if results:
+            for i in results:
                 item = NewplusItem()
                 item['title'] = i['title']
                 item['title_url'] = i['url']
