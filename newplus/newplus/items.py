@@ -12,3 +12,4 @@ class NewplusItem(scrapy.Item):
     time = scrapy.Field()
     img = scrapy.Field()
     summary = scrapy.Field()
+    author = scrapy.Field()
